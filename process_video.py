@@ -11,6 +11,9 @@ import os,sys
 import matplotlib.colors as mcolors
 sns.set_theme(style="white", palette=None)
 
+#find bottleneck and focus there, print current timestamp in function, import time
+#
+
 class ImageSeries():
     def __init__(self, location): #use init function to define the sequence of images as self.sequence using glob.glob in the directory where the images are
         self.images = []
@@ -112,7 +115,7 @@ class ProcessImage(ImageSeries):
                         if free_line == True:
                             taken_points.append(y1)
                             cv.line(image, (x1+185, y1+self.span_top_edge+25), (x2+185, y2+self.span_top_edge+25), (0, 0, 255), 2)
-                            image = cv.rectangle(image, (x1+185-50, y1+self.span_top_edge+25), (x2+185+50, y2+self.span_top_edge+25), (0, 255, 255), 1)
+                            #image = cv.rectangle(image, (x1+185-50, y1+self.span_top_edge+25), (x2+185+50, y2+self.span_top_edge+25), (0, 255, 255), 1)
                             filtered_lines[i,j] = [slope, y1]
                     j+=1
             i+=1
@@ -125,7 +128,7 @@ class ProcessImage(ImageSeries):
         self.slope_collapsed = []
 
         for key in filtered_lines:
-            #print(filtered_lines[key])
+            print(f"filtered lines {filtered_lines[key]}")
             collapsed.append(tuple(filtered_lines[key]))
             self.y_collapsed.append(filtered_lines[key][1])
             self.slope_collapsed.append(filtered_lines[key][0])
@@ -136,7 +139,8 @@ class ProcessImage(ImageSeries):
                 tracking[key[0]] = (filtered_lines[key])
             k+=1
             key_last = key[0]
-
+            
+        print(collapsed)
         with open('collapsed_pairs.pickle', 'wb') as f:
             pickle.dump(collapsed, f)
 
@@ -149,7 +153,7 @@ class ProcessImage(ImageSeries):
         
     def write_series(self): #method is called at the end of an operation chain to write the final images to a new directory
         for i, image in enumerate(self.images): #loop through each image in the current series
-            image = cv.rectangle(image, (225,self.y_collapsed[i]+self.span_top_edge), (225,self.y_collapsed[i]+self.span_top_edge+50), (255, 255, 0), 3)
+            image = cv.rectangle(image, (225,self.y_collapsed[i]+self.span_top_edge), (225,self.y_collapsed[i]+self.span_top_edge+5), (255, 255, 0), 5)
             cv.imwrite('output_sequence/'+f"output_{i}.png", image) #write the new image to the directory with incrementing, sequential filenames
         
         for j in range(len(self.slopes)-1):
