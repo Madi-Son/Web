@@ -49,8 +49,6 @@ def read_and_plot():
             to_pandas_slopes[entries] = [(slope_collapsed[i],i)]
             entries+=1
                 
-    print(f"to pandas pos: {to_pandas_pos}")
-    print(f"to pandas pos: {to_pandas_slopes}")
     tval_pos = {}
     yval = {}
     sval = {}
@@ -69,7 +67,7 @@ def read_and_plot():
 
     for key in tval_pos:
         if len(yval[key])>100:
-            plt.plot(tval_pos[key], yval[key])
+            plt.plot(yval[key])
     plt.title('ORGANIC Position vs Time')
     plt.xlabel('Frame #')
     plt.ylabel('Position')
@@ -77,8 +75,8 @@ def read_and_plot():
 
     for key in tval_pos:
         if len(yval[key])>100 and yval[key][0] > 75:
-            filt = scipy.signal.savgol_filter(yval[key], len(yval[key]), 4)
-            plt.plot(tval_pos[key], filt)
+            filt = scipy.signal.savgol_filter(yval[key], len(yval[key]), 2)
+            plt.plot(filt)
     plt.title('SAVGOL poly fit Position vs Time')
     plt.xlabel('Frame #')
     plt.ylabel('Position')
@@ -86,8 +84,8 @@ def read_and_plot():
 
     for key in tval_pos:
         if len(yval[key])>100 and yval[key][0] > 50:
-            filt = scipy.signal.savgol_filter(yval[key],75, 1)
-            plt.plot(tval_pos[key], filt)
+            filt = scipy.signal.savgol_filter(yval[key],15, 1)
+            plt.plot(filt)
     plt.title('75 frame smoothing Position vs Time')
     plt.xlabel('Frame #')
     plt.ylabel('Position')
@@ -103,7 +101,7 @@ def read_and_plot():
 
     for key in tval_slope:
         if len(sval[key])>100:
-            filt = scipy.signal.savgol_filter(sval[key],75, 1)
+            filt = scipy.signal.savgol_filter(sval[key],15, 1)
             plt.plot(filt)
     plt.title('75 frame smoothing Entry angle vs Time')
     plt.xlabel('Frame #')
@@ -112,7 +110,7 @@ def read_and_plot():
 
     for key in tval_slope:
         if len(sval[key])>100:
-            filt = scipy.signal.savgol_filter(sval[key],len(sval[key]), 4)
+            filt = scipy.signal.savgol_filter(sval[key],len(sval[key]), 2)
             plt.plot(filt)
     plt.title('SAVGOL poly fit Entry angle vs Time')
     plt.xlabel('Frame #')
@@ -129,8 +127,8 @@ def read_and_plot():
 
     for key in yval:
         if len(yval[key])>100:
-            filt_y = scipy.signal.savgol_filter(yval[key],len(yval[key]), 4)
-            filt_s = scipy.signal.savgol_filter(sval[key],len(sval[key]), 4)
+            filt_y = scipy.signal.savgol_filter(yval[key],len(yval[key]), 2)
+            filt_s = scipy.signal.savgol_filter(sval[key],len(sval[key]), 2)
             plt.plot(filt_y, filt_s)
     plt.title('SAVGOL polyfit Entry angle vs position')
     plt.xlabel('position')
@@ -139,10 +137,45 @@ def read_and_plot():
 
     for key in yval:
         if len(yval[key])>100:
-            filt_y = scipy.signal.savgol_filter(yval[key],75, 1)
-            filt_s = scipy.signal.savgol_filter(sval[key],75, 1)
+            filt_y = scipy.signal.savgol_filter(yval[key],15, 1)
+            filt_s = scipy.signal.savgol_filter(sval[key],15, 1)
             plt.plot(filt_y, filt_s)
     plt.title('75 frame moving average Entry angle vs position')
     plt.xlabel('position')
     plt.ylabel('entry angle')
     plt.show()
+
+    #get velocity data from postions
+    dt = 0.1
+    for key in yval:
+        if len(yval[key])>100:
+            velocity = (np.diff(yval[key]) / dt)
+            plt.plot(velocity)
+    plt.title('ORGANIC velocity')
+    plt.xlabel('FRAME')
+    plt.ylabel('VELOCITY')
+    plt.show()
+
+    #and also the filtered velocity
+    for key in tval_pos:
+        if len(yval[key])>100 and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],15, 1)
+            velocity = (np.diff(filt) / dt)
+            plt.plot(velocity)
+    plt.title('velocity from 75 frame smoothed position')
+    plt.xlabel('Frame #')
+    plt.ylabel('velocity')
+    plt.show()
+
+    #and also the fitted velocity
+    for key in tval_pos:
+        if len(yval[key])>100 and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],len(yval), 2)
+            velocity = (np.diff(filt) / dt)
+            plt.plot(velocity, alpha=0.5)
+    plt.title('velocity from 2nd order poly fit position')
+    plt.xlabel('Frame #')
+    plt.ylabel('velocity')
+    plt.show()
+
+    
