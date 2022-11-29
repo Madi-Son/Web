@@ -65,6 +65,27 @@ def read_and_plot():
     style = "seaborn-talk"
     mpl.style.use(style)
 
+    delta = 0.35
+    theta = (np.pi/2)-np.arccos(delta/38.8)
+    H0 = 18
+    pixel_to_inch = 100
+    Vs = 0.465 #around 95n percent MV
+
+    
+
+    # for key in tval_slope:
+    #     if len(sval[key])>100:
+    #         plt.plot(sval[key], alpha = 0.25)
+
+    # for key in yval:
+    #     if len(yval[key])>100:
+    #         entry_angle = -1*(theta - np.arctan((np.array(yval[key])*np.cos(theta)/pixel_to_inch)/(H0-np.array(yval[key])*np.sin(theta)/pixel_to_inch)))
+    #         plt.plot(entry_angle)
+    # plt.title('theory for entry angle plotted over actual data')
+    # plt.xlabel('Time')
+    # plt.ylabel('Entry Angle')
+    # plt.show()
+
     for key in tval_pos:
         if len(yval[key])>100:
             plt.plot(yval[key])
@@ -76,7 +97,7 @@ def read_and_plot():
     for key in tval_pos:
         if len(yval[key])>100 and yval[key][0] > 75:
             filt = scipy.signal.savgol_filter(yval[key], len(yval[key]), 2)
-            plt.plot(filt)
+            plt.plot(filt, alpha = 0.35)
     plt.title('SAVGOL poly fit Position vs Time')
     plt.xlabel('Frame #')
     plt.ylabel('Position')
@@ -84,7 +105,7 @@ def read_and_plot():
 
     for key in tval_pos:
         if len(yval[key])>100 and yval[key][0] > 50:
-            filt = scipy.signal.savgol_filter(yval[key],15, 1)
+            filt = scipy.signal.savgol_filter(yval[key],25, 1)
             plt.plot(filt)
     plt.title('75 frame smoothing Position vs Time')
     plt.xlabel('Frame #')
@@ -93,20 +114,20 @@ def read_and_plot():
 
     for key in tval_slope:
         if len(sval[key])>100:
-            plt.plot(sval[key])
-    plt.title('ORGANIC Entry angle vs Time')
-    plt.xlabel('Frame #')
-    plt.ylabel('Entry angle')
-    plt.show()
+            plt.plot(sval[key], alpha = 0.25)
+    # plt.title('ORGANIC Entry angle vs Time')
+    # plt.xlabel('Frame #')
+    # plt.ylabel('Entry angle')
+    #plt.show()
 
-    for key in tval_slope:
-        if len(sval[key])>100:
-            filt = scipy.signal.savgol_filter(sval[key],15, 1)
-            plt.plot(filt)
-    plt.title('75 frame smoothing Entry angle vs Time')
-    plt.xlabel('Frame #')
-    plt.ylabel('Entry angle')
-    plt.show()
+    # for key in tval_slope:
+    #     if len(sval[key])>100:
+    #         filt = scipy.signal.savgol_filter(sval[key],15, 1)
+    #         plt.plot(filt)
+    # plt.title('75 frame smoothing Entry angle vs Time')
+    # plt.xlabel('Frame #')
+    # plt.ylabel('Entry angle')
+    # plt.show()
 
     for key in tval_slope:
         if len(sval[key])>100:
@@ -116,6 +137,19 @@ def read_and_plot():
     plt.xlabel('Frame #')
     plt.ylabel('Entry angle')
     plt.show()
+
+    for key in tval_slope:
+        if len(sval[key])>100:
+            plt.plot(sval[key], alpha = 0.25)
+    for key in tval_slope:
+        if len(sval[key])>100:
+            filt = scipy.signal.savgol_filter(sval[key],25, 1)
+            plt.plot(filt)
+    plt.title('(25 frame smoothing overlayed) Entry angle vs position')
+    plt.xlabel('position')
+    plt.ylabel('entry angle')
+    plt.show()
+
     
     for key in yval:
         if len(yval[key])>100:
@@ -147,19 +181,29 @@ def read_and_plot():
 
     #get velocity data from postions
     dt = 0.1
+    for key in tval_pos:
+        if len(yval[key])>100 and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],75, 1)
+            velocity = (np.diff(filt) / dt)
+            plt.plot(velocity)
+    # plt.title('ORGANIC velocity')
+    # plt.xlabel('FRAME')
+    # plt.ylabel('VELOCITY')
+    # plt.show()
+
     for key in yval:
         if len(yval[key])>100:
-            velocity = (np.diff(yval[key]) / dt)
-            plt.plot(velocity)
-    plt.title('ORGANIC velocity')
-    plt.xlabel('FRAME')
-    plt.ylabel('VELOCITY')
+            vel_theoretical = Vs*(theta - (np.array(yval[key])/pixel_to_inch)/(np.sqrt((np.array(yval[key])/pixel_to_inch)**2 - 2*H0*theta + H0**2)))
+            plt.plot(vel_theoretical)
+    plt.title('ODE theory for velocity plotted over actual data')
+    plt.xlabel('Time')
+    plt.ylabel('velocity')
     plt.show()
 
     #and also the filtered velocity
     for key in tval_pos:
         if len(yval[key])>100 and yval[key][0] > 50:
-            filt = scipy.signal.savgol_filter(yval[key],15, 1)
+            filt = scipy.signal.savgol_filter(yval[key],75, 1)
             velocity = (np.diff(filt) / dt)
             plt.plot(velocity)
     plt.title('velocity from 75 frame smoothed position')

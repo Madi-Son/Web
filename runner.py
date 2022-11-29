@@ -13,7 +13,4 @@ sequence1.write_series()
 
 read_and_plot()
 
-
 # $ ffmpeg -framerate 5 -i output_sequence/output_%d.png -c:v libx264 -r 30 output55.mp4
-
-
