@@ -11,9 +11,6 @@ import os,sys
 import matplotlib.colors as mcolors
 sns.set_theme(style="white", palette=None)
 
-#find bottleneck and focus there, print current timestamp in function, import time
-#
-
 class ImageSeries():
     def __init__(self, location): #use init function to define the sequence of images as self.sequence using glob.glob in the directory where the images are
         self.images = []
@@ -28,6 +25,8 @@ class ProcessImage(ImageSeries):
         for image in self.images: #step through each image in the input series
             blurred_images.append(cv.blur(image,(kernel_size,kernel_size))) #use openCV gaussian blur to apply gaussian blur
         self.images = blurred_images
+        for i, image in enumerate(self.images): #loop through each image in the current series
+            cv.imwrite('output_sequence/'+f"output_blurred{i}.png", image)
 
     def gamma(self, gamma_size): #produce a gamma table based on the input value and use the table to change the gamma of the image
         invGamma = 1 / gamma_size #invert the gamma value to build table from
@@ -55,6 +54,8 @@ class ProcessImage(ImageSeries):
             self.canny_edges.append(cv.Canny(image, threshold1, threshold2)) #append self.cannyedges along with self.images
             # cv.imwrite('output_sequence/'+f"canny_{i}.png", self.canny_edges[i])
             i += 1
+        for i, image in enumerate(self.canny_edges): #loop through each image in the current series
+            cv.imwrite('output_sequence/'+f"output_canny{i}.png", image)
 
     def crop_span(self): #crops the frames produced by canny algorith based on the top and bottom edges of the span, uses spacing of gradients
         x_center = int(1920/2)  #assume input footage is 1920x1080
@@ -82,6 +83,8 @@ class ProcessImage(ImageSeries):
         for image in self.canny_edges: 
             # cv.imwrite('output_sequence/'+f"canny_cropped_{i}.png", self.canny_edges[i])
             i += 1
+        for i, image in enumerate(self.images): #loop through each image in the current series
+            cv.imwrite('output_sequence/'+f"output_cropped{i}.png", image)
         
     def hough_linesP(self):
         self.linesP = []
@@ -119,6 +122,8 @@ class ProcessImage(ImageSeries):
                             filtered_lines[i,j] = [slope, y1]
                     j+=1
             i+=1
+        for i, image in enumerate(self.images): #loop through each image in the current series
+            cv.imwrite('output_sequence/'+f"output_lines{i}.png", image)
 
         tracking = {}
         key_last = None
@@ -147,13 +152,12 @@ class ProcessImage(ImageSeries):
         with open('pos_collapsed.pickle', 'wb') as g:
             pickle.dump(self.y_collapsed, g)
 
-        with open('slope_collapsed.pickle', 'wb') as g:
-            pickle.dump(self.slope_collapsed, g)
+        with open('slope_collapsed.pickle', 'wb') as k:
+            pickle.dump(self.slope_collapsed, k)
         
         
     def write_series(self): #method is called at the end of an operation chain to write the final images to a new directory
         for i, image in enumerate(self.images): #loop through each image in the current series
-            image = cv.rectangle(image, (225,self.y_collapsed[i]+self.span_top_edge), (225,self.y_collapsed[i]+self.span_top_edge+5), (255, 255, 0), 5)
             cv.imwrite('output_sequence/'+f"output_{i}.png", image) #write the new image to the directory with incrementing, sequential filenames
         
         for j in range(len(self.slopes)-1):

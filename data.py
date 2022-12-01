@@ -25,8 +25,8 @@ sns.set_theme(style="white", palette=None)
 def read_and_plot():
     y_collapsed = pd.read_pickle(r'pos_collapsed.pickle')
     slope_collapsed = pd.read_pickle(r'slope_collapsed.pickle')
-    #print(y_collapsed)
-    #print(slope_collapsed)
+    print(y_collapsed)
+    print(slope_collapsed)
     to_pandas_pos = {}
     to_pandas_slopes = {}
     # print(f"filtered lines 0 = {filtered_lines[0,0]}")
@@ -61,6 +61,19 @@ def read_and_plot():
             tval_slope[j] = [s[1] for s in to_pandas_slopes[elem2]]
             sval[j] = [s[0] for s in to_pandas_slopes[elem2]]
 
+    # images = []
+    # sequence = sorted(glob.glob(f"output_sequence/*.png")) #create a sequence of images where the images are represented by their filename
+    # for image in sequence:
+    #     images.append(cv.imread(str(image))) #create a list of images where the images are represented by the actual image arrays
+    # i = 0
+    # for key in yval:
+    #     for elem in yval[key]:
+    #         print(elem)
+    #         print(i,j)
+    #         if (i+j) < len(images)-1:
+    #             image[i+j] = cv.rectangle(image[i+j], (185, elem), (200, elem + 25), (0, 255, 255), 5)
+    #     i+=1
+
 
     style = "seaborn-talk"
     mpl.style.use(style)
@@ -71,14 +84,16 @@ def read_and_plot():
     pixel_to_inch = 100
     Vs = 0.465 #around 95n percent MV
 
-    
+    # -- PLOTS --
+    min_frames = 75
 
     # for key in tval_slope:
-    #     if len(sval[key])>100:
+    #     print(sval[key])
+    #     if len(sval[key])>min_frames:
     #         plt.plot(sval[key], alpha = 0.25)
 
     # for key in yval:
-    #     if len(yval[key])>100:
+    #     if len(yval[key])>min_frames:
     #         entry_angle = -1*(theta - np.arctan((np.array(yval[key])*np.cos(theta)/pixel_to_inch)/(H0-np.array(yval[key])*np.sin(theta)/pixel_to_inch)))
     #         plt.plot(entry_angle)
     # plt.title('theory for entry angle plotted over actual data')
@@ -86,140 +101,148 @@ def read_and_plot():
     # plt.ylabel('Entry Angle')
     # plt.show()
 
+    #Plot position vs total time series
     for key in tval_pos:
-        if len(yval[key])>100:
+        if len(yval[key])>min_frames:
+            plt.plot(tval_pos[key], yval[key])
+    plt.title('Position vs Time')
+    plt.xlabel('Frame #')
+    plt.ylabel('Position (px)')
+    plt.show()
+    #and with smoothing
+    for key in tval_pos:
+        if len(yval[key])>min_frames:
+            filt = scipy.signal.savgol_filter(yval[key],25, 1)
+            plt.plot(tval_pos[key], filt)
+    plt.title('25 frame smoothing Position vs Time')
+    plt.xlabel('Frame #')
+    plt.ylabel('Position (px)')
+    plt.show()
+
+    #Plot position vs collapsed time series
+    for key in tval_pos:
+        if len(yval[key])>min_frames:
             plt.plot(yval[key])
-    plt.title('ORGANIC Position vs Time')
+    plt.title('Position vs Time')
     plt.xlabel('Frame #')
-    plt.ylabel('Position')
+    plt.ylabel('Position (px)')
     plt.show()
-
+    #and with smoothing
     for key in tval_pos:
-        if len(yval[key])>100 and yval[key][0] > 75:
-            filt = scipy.signal.savgol_filter(yval[key], len(yval[key]), 2)
-            plt.plot(filt, alpha = 0.35)
-    plt.title('SAVGOL poly fit Position vs Time')
-    plt.xlabel('Frame #')
-    plt.ylabel('Position')
-    plt.show()
-
-    for key in tval_pos:
-        if len(yval[key])>100 and yval[key][0] > 50:
+        if len(yval[key])>min_frames:
             filt = scipy.signal.savgol_filter(yval[key],25, 1)
             plt.plot(filt)
-    plt.title('75 frame smoothing Position vs Time')
+    plt.title('25 frame smoothing Position vs Time')
     plt.xlabel('Frame #')
-    plt.ylabel('Position')
+    plt.ylabel('Position (px)')
     plt.show()
 
+    #Plot entry angle vs total time series
     for key in tval_slope:
-        if len(sval[key])>100:
-            plt.plot(sval[key], alpha = 0.25)
-    # plt.title('ORGANIC Entry angle vs Time')
-    # plt.xlabel('Frame #')
-    # plt.ylabel('Entry angle')
-    #plt.show()
-
-    # for key in tval_slope:
-    #     if len(sval[key])>100:
-    #         filt = scipy.signal.savgol_filter(sval[key],15, 1)
-    #         plt.plot(filt)
-    # plt.title('75 frame smoothing Entry angle vs Time')
-    # plt.xlabel('Frame #')
-    # plt.ylabel('Entry angle')
-    # plt.show()
-
-    for key in tval_slope:
-        if len(sval[key])>100:
-            filt = scipy.signal.savgol_filter(sval[key],len(sval[key]), 2)
-            plt.plot(filt)
-    plt.title('SAVGOL poly fit Entry angle vs Time')
+        if len(sval[key])>min_frames:
+            plt.plot(tval_slope[key],sval[key])
+    plt.title('Entry Angle vs Time')
     plt.xlabel('Frame #')
-    plt.ylabel('Entry angle')
+    plt.ylabel('Entry Angle (rad)')
+    plt.show()
+    #and with smoothing
+    for key in tval_slope:
+        if len(sval[key])>min_frames:
+            filt = scipy.signal.savgol_filter(sval[key],25, 1)
+            plt.plot(tval_slope[key],filt)
+    plt.title('25 frame smoothing Entry Angle vs Time')
+    plt.xlabel('Frame #')
+    plt.ylabel('Entry Angle (rad)')
     plt.show()
 
+    #Plot entry angle vs collapsed time series
     for key in tval_slope:
-        if len(sval[key])>100:
-            plt.plot(sval[key], alpha = 0.25)
+        if len(sval[key])>min_frames:
+            plt.plot(sval[key])
+    plt.title('Entry Angle vs Time')
+    plt.xlabel('Frame #')
+    plt.ylabel('Entry Angle (rad)')
+    plt.show()
+    #and with smoothing
     for key in tval_slope:
-        if len(sval[key])>100:
+        if len(sval[key])>min_frames:
             filt = scipy.signal.savgol_filter(sval[key],25, 1)
             plt.plot(filt)
-    plt.title('(25 frame smoothing overlayed) Entry angle vs position')
-    plt.xlabel('position')
-    plt.ylabel('entry angle')
+    plt.title('25 frame smoothing Entry Angle vs Time')
+    plt.xlabel('Frame #')
+    plt.ylabel('Entry Angle (rad)')
     plt.show()
 
-    
-    for key in yval:
-        if len(yval[key])>100:
-            plt.plot(yval[key], sval[key])
-    plt.title('ORGANIC Entry angle vs position')
-    plt.xlabel('position')
-    plt.ylabel('entry angle')
+    #plot slope vs position
+    for key in tval_slope:
+        if len(sval[key])>min_frames:
+            plt.plot(yval[key],sval[key])
+    plt.title('Entry Angle vs Position')
+    plt.xlabel('Position (px)')
+    plt.ylabel('Entry angle (rad)')
+    plt.show()
+    #and with smoothing
+    for key in tval_slope:
+        if len(sval[key])>100:
+            filt_pos = scipy.signal.savgol_filter(yval[key],25, 1)
+            filt_slope = scipy.signal.savgol_filter(sval[key],25, 1)
+            plt.plot(filt_pos, filt_slope)
+    plt.title('25 frame smoothing Entry Angle vs Position')
+    plt.xlabel('Position (px)')
+    plt.ylabel('Entry angle (rad)')
     plt.show()
 
-    for key in yval:
-        if len(yval[key])>100:
-            filt_y = scipy.signal.savgol_filter(yval[key],len(yval[key]), 2)
-            filt_s = scipy.signal.savgol_filter(sval[key],len(sval[key]), 2)
-            plt.plot(filt_y, filt_s)
-    plt.title('SAVGOL polyfit Entry angle vs position')
-    plt.xlabel('position')
-    plt.ylabel('entry angle')
-    plt.show()
 
-    for key in yval:
-        if len(yval[key])>100:
-            filt_y = scipy.signal.savgol_filter(yval[key],15, 1)
-            filt_s = scipy.signal.savgol_filter(sval[key],15, 1)
-            plt.plot(filt_y, filt_s)
-    plt.title('75 frame moving average Entry angle vs position')
-    plt.xlabel('position')
-    plt.ylabel('entry angle')
-    plt.show()
 
-    #get velocity data from postions
+  
+    #Get velocity data from postions
     dt = 0.1
     for key in tval_pos:
-        if len(yval[key])>100 and yval[key][0] > 50:
-            filt = scipy.signal.savgol_filter(yval[key],75, 1)
+        if len(yval[key])>min_frames and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],25, 1)
             velocity = (np.diff(filt) / dt)
             plt.plot(velocity)
-    # plt.title('ORGANIC velocity')
-    # plt.xlabel('FRAME')
-    # plt.ylabel('VELOCITY')
-    # plt.show()
-
-    for key in yval:
-        if len(yval[key])>100:
-            vel_theoretical = Vs*(theta - (np.array(yval[key])/pixel_to_inch)/(np.sqrt((np.array(yval[key])/pixel_to_inch)**2 - 2*H0*theta + H0**2)))
-            plt.plot(vel_theoretical)
-    plt.title('ODE theory for velocity plotted over actual data')
-    plt.xlabel('Time')
-    plt.ylabel('velocity')
+    plt.title('Velocity from Position (25 frame smoothing on position only)')
+    plt.xlabel('Frame #')
+    plt.ylabel('Wrinkle Velocity (px/frame)')
     plt.show()
 
-    #and also the filtered velocity
+    #Get velocity data from postionsn and plot on complete time series
+    dt = 0.1
     for key in tval_pos:
-        if len(yval[key])>100 and yval[key][0] > 50:
-            filt = scipy.signal.savgol_filter(yval[key],75, 1)
+        if len(yval[key])>min_frames and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],25, 1)
             velocity = (np.diff(filt) / dt)
-            plt.plot(velocity)
-    plt.title('velocity from 75 frame smoothed position')
+            plt.plot(tval_pos[key][1:], velocity)
+    plt.title('Velocity from Position (25 frame smoothing on position only)')
     plt.xlabel('Frame #')
-    plt.ylabel('velocity')
+    plt.ylabel('Wrinkle Velocity (px/frame)')
     plt.show()
 
-    #and also the fitted velocity
+    #Get velocity data from postions and smooth
+    dt = 0.1
     for key in tval_pos:
-        if len(yval[key])>100 and yval[key][0] > 50:
-            filt = scipy.signal.savgol_filter(yval[key],len(yval), 2)
+        if len(yval[key])>min_frames and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],25, 1)
             velocity = (np.diff(filt) / dt)
-            plt.plot(velocity, alpha=0.5)
-    plt.title('velocity from 2nd order poly fit position')
+            vel = scipy.signal.savgol_filter(velocity,25, 1)
+            plt.plot(vel)
+    plt.title('Velocity from Position (25 frame smoothing on position and velocity sets)')
     plt.xlabel('Frame #')
-    plt.ylabel('velocity')
+    plt.ylabel('Wrinkle Velocity (px/frame)')
+    plt.show()
+
+    #Get velocity data from postions and smooth and plot agains complete time series
+    dt = 0.1
+    for key in tval_pos:
+        if len(yval[key])>min_frames and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],25, 1)
+            velocity = (np.diff(filt) / dt)
+            vel = scipy.signal.savgol_filter(velocity,25, 1)
+            plt.plot(tval_pos[key][1:],vel)
+    plt.title('Velocity from Position (25 frame smoothing on position and velocity sets)')
+    plt.xlabel('Frame #')
+    plt.ylabel('Wrinkle Velocity (px/frame)')
     plt.show()
 
     
