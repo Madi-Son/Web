@@ -132,8 +132,14 @@ class ProcessImage(ImageSeries):
         self.y_collapsed = []
         self.slope_collapsed = []
 
+        print(f" SPANS bottom, top = {self.span_bottom_edge, self.span_top_edge}")
+        W = self.span_bottom_edge - self.span_top_edge
+        #9in span
+        one_in = W/9
+        print(one_in)
+
         for key in filtered_lines:
-            print(f"filtered lines {filtered_lines[key]}")
+            #print(f"filtered lines {filtered_lines[key]}")
             collapsed.append(tuple(filtered_lines[key]))
             self.y_collapsed.append(filtered_lines[key][1])
             self.slope_collapsed.append(filtered_lines[key][0])
@@ -145,7 +151,7 @@ class ProcessImage(ImageSeries):
             k+=1
             key_last = key[0]
             
-        print(collapsed)
+        #print(collapsed)
         with open('collapsed_pairs.pickle', 'wb') as f:
             pickle.dump(collapsed, f)
 

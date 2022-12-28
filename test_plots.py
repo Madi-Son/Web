@@ -6,6 +6,18 @@ import matplotlib.pyplot as plt
 style = "seaborn-talk"
 plt.style.use(style)
 
+V = 0.235
+Lc = 0.25
+Rc = 0.25
+W = 18
+C = Lc + Rc - W
+
+tval = np.linspace(0,20,1000)
+uval = C*np.exp(-tval * V/Lc)-Rc+W
+plt.plot(tval,uval, 'r')
+plt.show()
+
+
 #Misalign: Theta = pi/2 - cos^-1(displacement/ 38.8 cm)   
 #Twist: Theta = pi/2 - cos^-1(displacement/ 21.7 cm) 
 def misalign_disp(disp):

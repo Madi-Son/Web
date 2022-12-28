@@ -26,8 +26,8 @@ sns.set_theme(style="white", palette=None)
 def read_and_plot():
     y_collapsed = pd.read_pickle(r'pos_collapsed.pickle')
     slope_collapsed = pd.read_pickle(r'slope_collapsed.pickle')
-    print(y_collapsed)
-    print(slope_collapsed)
+    #print(y_collapsed)
+    #print(slope_collapsed)
     to_pandas_pos = {}
     to_pandas_slopes = {}
     # print(f"filtered lines 0 = {filtered_lines[0,0]}")
@@ -41,7 +41,9 @@ def read_and_plot():
             hit = True
         else:
             for entry in to_pandas_pos:
-                if entry in to_pandas_pos and abs(y_collapsed[i] - to_pandas_pos[entry][-1][0]) < 25 and (i-to_pandas_pos[entry][-1][1])<5:
+                #print(abs(y_collapsed[i] - to_pandas_pos[entry][-1][0]))
+                #print((i-to_pandas_pos[entry][-1][1]))
+                if entry in to_pandas_pos and (y_collapsed[i] - to_pandas_pos[entry][-1][0]) < 25 and (y_collapsed[i] - to_pandas_pos[entry][-1][0]) > -25 and (i-to_pandas_pos[entry][-1][1])<5 and (i-to_pandas_pos[entry][-1][1])>0:
                     to_pandas_pos[entry].append((y_collapsed[i],i))
                     to_pandas_slopes[entry].append((slope_collapsed[i],i))
                     hit = True
@@ -79,11 +81,6 @@ def read_and_plot():
     style = "seaborn-talk"
     mpl.style.use(style)
 
-    delta = 0.35
-    theta = (np.pi/2)-np.arccos(delta/38.8)
-    H0 = 18
-    pixel_to_inch = 100
-    Vs = 0.465 #around 95n percent MV
 
     # -- PLOTS --
     min_frames = 75
@@ -101,57 +98,84 @@ def read_and_plot():
     # plt.xlabel('Time')
     # plt.ylabel('Entry Angle')
     # plt.show()
+    # print(tval_pos)
+    # print(sval)
+    # print(yval)
+    # ppi = 84.3333
+    # V = 0.16
+    # L = 18
+    # Lc = 0.5
+    # Rc = 0.5
+    # W = 9
+    # C = Lc + Rc - W
+
+    # tval = np.linspace(0,250,100)
+    # uval = (C*np.exp(-tval * V/L)-Rc) + Lc +1
+    # vval = V*np.sin(uval)
+
+    ppi = 84.3333
+    a = 0.45
+    V = 0.5*a
+    L = 18
+    Lc = 0
+    Rc = 9
+    W = 9
+    tval = np.linspace(0,175,50)
+    uval1 = -1*(np.array(tval)*(a*(Rc-Lc))/(L+np.array(tval)*a)+Lc)+7
+    uval2 = -1*(np.array(tval)*(V*(Rc-Lc))/(L+np.array(tval)*V)+Lc)+7
+    vval = V*np.sin(uval1)
 
     #Plot position vs total time series
     for key in tval_pos:
         if len(yval[key])>min_frames:
-            plt.plot(tval_pos[key], yval[key])
-            plt.pause(0.001)
+            yplot = [(num / ppi) for num in yval[key]]
+            plt.plot(yplot, alpha = 0.5)
+    line, = plt.plot(tval,uval1, 'bo')
+    line, = plt.plot(tval,uval2, 'go')
+    line.set_label('Derived model')
     plt.title('Position vs Time')
-    plt.xlabel('Frame #')
-    plt.ylabel('Position (px)')
+    plt.xlabel('Time (frame)')
+    plt.ylabel('Position (in)')
     plt.show()
 
+    # # create the figure and axes objects
+    # fig, ax = plt.subplots()
 
-    # create the figure and axes objects
-    fig, ax = plt.subplots()
+    # # function that draws each frame of the animation
+    # # x = []
+    # # y = []
+    # # tflat = []
+    # # pflat = []
+    # # for key in tval_pos:
+    # #         for l in range(len(tval_pos[key])):
+    # #             tflat.append(tval_pos[key][l])
+    # #             pflat.append(yval[key][l])
+    # # sortflat_t = sorted(tflat)
+    # # sortflat_y = [x for _, x in sorted(zip(tflat, pflat))]
+    # # def animate(i):
+    # #     t = sortflat_t[i]
+    # #     pt = sortflat_y[i] # grab a random integer to be the next y-value in the animation
+    # #     x.append(t)
+    # #     y.append(pt)
 
-    # function that draws each frame of the animation
-    x = []
-    y = []
-    tflat = []
-    pflat = []
-    for key in tval_pos:
-        if len(yval[key])>min_frames:
-            for l in range(len(tval_pos[key])):
-                tflat.append(tval_pos[key][l])
-                pflat.append(yval[key][l])
-    sortflat_t = sorted(tflat)
-    sortflat_y = [x for _, x in sorted(zip(tflat, pflat))]
-    def animate(i):
-        t = sortflat_t[i]
-        pt = sortflat_y[i] # grab a random integer to be the next y-value in the animation
-        x.append(t)
-        y.append(pt)
+    # #     ax.clear()
+    # #     ax.plot(x, y, 'ro')
+    # #     # ax.set_xlim([0,20])
+    # #     # ax.set_ylim([0,10])ß
 
-        ax.clear()
-        ax.plot(x, y, 'ro')
-        # ax.set_xlim([0,20])
-        # ax.set_ylim([0,10])
+    # #     # run the animation
+    # # ani = FuncAnimation(fig, animate, interval=2)
 
-        # run the animation
-    ani = FuncAnimation(fig, animate, interval=250)
-
-    plt.show()
-    #and with smoothing
-    # for key in tval_pos:
-    #     if len(yval[key])>min_frames:
-    #         filt = scipy.signal.savgol_filter(yval[key],25, 1)
-    #         plt.plot(tval_pos[key], filt)
-    # plt.title('25 frame smoothing Position vs Time')
-    # plt.xlabel('Frame #')
-    # plt.ylabel('Position (px)')
-    # plt.show()
+    # # plt.show()
+    # # #and with smoothing
+    # # for key in tval_pos:
+    # #     if len(yval[key])>min_frames:
+    # #         filt = scipy.signal.savgol_filter(yval[key],25, 1)
+    # #         plt.plot(tval_pos[key], filt)
+    # # plt.title('25 frame smoothing Position vs Time')
+    # # plt.xlabel('Frame #')
+    # # plt.ylabel('Position (px)')
+    # # plt.show()
 
     # #Plot position vs collapsed time series
     # for key in tval_pos:
@@ -229,17 +253,18 @@ def read_and_plot():
 
 
   
-    # #Get velocity data from postions
-    # dt = 0.1
-    # for key in tval_pos:
-    #     if len(yval[key])>min_frames and yval[key][0] > 50:
-    #         filt = scipy.signal.savgol_filter(yval[key],25, 1)
-    #         velocity = (np.diff(filt) / dt)
-    #         plt.plot(velocity)
-    # plt.title('Velocity from Position (25 frame smoothing on position only)')
-    # plt.xlabel('Frame #')
-    # plt.ylabel('Wrinkle Velocity (px/frame)')
-    # plt.show()
+    #Get velocity data from postions
+    dt = 1
+    for key in tval_pos:
+        if len(yval[key])>min_frames and yval[key][0] > 50:
+            filt = scipy.signal.savgol_filter(yval[key],25, 1)
+            velocity = (np.diff(filt) / dt)/ppi
+            plt.plot(velocity)
+            plt.plot(tval, vval, 'go')
+    plt.title('Velocity from Position (25 frame smoothing on position only)')
+    plt.xlabel('Frame #')
+    plt.ylabel('Wrinkle Velocity (px/frame)')
+    plt.show()
 
     # #Get velocity data from postionsn and plot on complete time series
     # dt = 0.1
@@ -276,6 +301,19 @@ def read_and_plot():
     #         plt.plot(tval_pos[key][1:],vel)
     # plt.title('Velocity from Position (25 frame smoothing on position and velocity sets)')
     # plt.xlabel('Frame #')
+    # plt.ylabel('Wrinkle Velocity (px/frame)')
+    # plt.show()
+
+    # #Get velocity data from postions and smooth and plot against position series
+    # dt = 0.1
+    # for key in tval_pos:
+    #     if len(yval[key])>min_frames and yval[key][0] > 50:
+    #         filt = scipy.signal.savgol_filter(yval[key],25, 1)
+    #         velocity = (np.diff(filt) / dt)
+    #         vel = scipy.signal.savgol_filter(velocity,25, 1)
+    #         plt.plot(vel, sval[key][1:])
+    # plt.title('Velocity vs Entry angle')
+    # plt.xlabel('Entry Angle (rad)')
     # plt.ylabel('Wrinkle Velocity (px/frame)')
     # plt.show()
 
